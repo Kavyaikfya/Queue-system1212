@@ -1,0 +1,104 @@
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
+import pg from 'pg';
+import { PGlite } from '@electric-sql/pglite';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+export interface QueryResult<T = any> {
+  rows: T[];
+  rowCount: number;
+}
+
+let pgPool: pg.Pool | null = null;
+let pgliteInstance: PGlite | null = null;
+
+export async function getDbClient() {
+  if (process.env.DATABASE_URL) {
+    if (!pgPool) {
+      pgPool = new pg.Pool({
+        connectionString: process.env.DATABASE_URL,
+        ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+      });
+      console.log('[DB] Connected to PostgreSQL via DATABASE_URL');
+    }
+    return {
+      type: 'pg' as const,
+      pool: pgPool,
+    };
+  }
+
+  if (!pgliteInstance) {
+    const dataDir = path.resolve(__dirname, '../../data/postgres_db');
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
+    }
+    const pidFile = path.join(dataDir, 'postmaster.pid');
+    if (fs.existsSync(pidFile)) {
+      try {
+        fs.unlinkSync(pidFile);
+        console.log('[DB] Removed stale postmaster.pid lock file');
+      } catch {
+        // ignore
+      }
+    }
+    try {
+      pgliteInstance = new PGlite(dataDir);
+      await pgliteInstance.waitReady;
+    } catch (err) {
+      console.warn('[DB] Persistent PGlite encountered lock/WAL issue. Re-initializing clean storage...', err);
+      try {
+        fs.rmSync(dataDir, { recursive: true, force: true });
+        fs.mkdirSync(dataDir, { recursive: true });
+      } catch {
+        // ignore
+      }
+      pgliteInstance = new PGlite(dataDir);
+      await pgliteInstance.waitReady;
+    }
+    console.log(`[DB] Persistent embedded PostgreSQL (PGlite) initialized at ${dataDir}`);
+  }
+
+  return {
+    type: 'pglite' as const,
+    client: pgliteInstance,
+  };
+}
+
+export async function query<T = any>(sql: string, params: any[] = []): Promise<QueryResult<T>> {
+  const db = await getDbClient();
+
+  if (db.type === 'pg') {
+    const res = await db.pool.query(sql, params);
+    return {
+      rows: res.rows,
+      rowCount: res.rowCount ?? res.rows.length,
+    };
+  } else {
+    // PGlite executes SQL with params
+    const res = await db.client.query<T>(sql, params);
+    return {
+      rows: res.rows || [],
+      rowCount: res.rows?.length || 0,
+    };
+  }
+}
+
+export async function initDatabase(): Promise<void> {
+  const schemaPath = path.resolve(__dirname, 'schema.sql');
+  const schemaSql = fs.readFileSync(schemaPath, 'utf8');
+
+  console.log('[DB] Initializing PostgreSQL schema...');
+  const db = await getDbClient();
+
+  if (db.type === 'pg') {
+    await db.pool.query(schemaSql);
+  } else {
+    // PGlite supports exec() for multi-statement SQL scripts
+    await db.client.exec(schemaSql);
+  }
+
+  console.log('[DB] PostgreSQL schema initialized successfully.');
+}

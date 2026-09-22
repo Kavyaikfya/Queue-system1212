@@ -1,0 +1,220 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light dark;
+}
+
+body {
+  margin: 0;
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #030712;
+  color: #f1f5f9;
+  overflow-x: hidden;
+}
+
+html.dark body {
+  background-color: #020617;
+  background-image: 
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(6, 182, 212, 0.15), transparent 70%),
+    radial-gradient(circle at 10% 25%, rgba(99, 102, 241, 0.08) 0%, transparent 40%),
+    radial-gradient(circle at 90% 40%, rgba(59, 130, 246, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 50% 85%, rgba(139, 92, 246, 0.06) 0%, transparent 60%);
+  background-attachment: fixed;
+  color: #f8fafc;
+}
+
+/* ==========================================================================
+   QEVORA LUXURY GLASSMORPHISM & SURFACES
+   ========================================================================== */
+
+.qevora-card {
+  background: rgba(11, 19, 38, 0.72);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(56, 189, 248, 0.15);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  border-radius: 1.5rem;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.qevora-card-interactive {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.qevora-card-interactive:hover {
+  transform: translateY(-3px);
+  border-color: rgba(56, 189, 248, 0.4);
+  box-shadow: 0 16px 40px -12px rgba(6, 182, 212, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.qevora-card-glow {
+  position: relative;
+}
+.qevora-card-glow::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.6), rgba(99, 102, 241, 0.3), transparent 75%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* Digital Wallet / Boarding Pass Ticket Styling */
+.ticket-wallet-stub {
+  position: relative;
+  background: linear-gradient(135deg, rgba(13, 23, 48, 0.95), rgba(7, 14, 30, 0.95));
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  border-radius: 1.75rem;
+  overflow: hidden;
+  box-shadow: 0 20px 50px -15px rgba(0, 0, 0, 0.7);
+}
+
+.ticket-notch-left {
+  position: absolute;
+  left: -12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  background-color: #020617;
+  border-radius: 50%;
+  border-right: 1px solid rgba(56, 189, 248, 0.3);
+  z-index: 20;
+}
+
+.ticket-notch-right {
+  position: absolute;
+  right: -12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  background-color: #020617;
+  border-radius: 50%;
+  border-left: 1px solid rgba(56, 189, 248, 0.3);
+  z-index: 20;
+}
+
+.ticket-perforation {
+  border-top: 2px dashed rgba(56, 189, 248, 0.2);
+}
+
+/* Holographic Shimmer for Credentials */
+.hologram-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+.hologram-shimmer::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    60deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.08) 50%,
+    transparent 70%
+  );
+  transform: rotate(25deg);
+  animation: hologramSweep 6s infinite ease-in-out;
+  pointer-events: none;
+}
+
+@keyframes hologramSweep {
+  0% {
+    transform: translateX(-100%) rotate(25deg);
+  }
+  20%, 100% {
+    transform: translateX(100%) rotate(25deg);
+  }
+}
+
+/* Radar & Live Pulsing Indicators */
+@keyframes radarPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(6, 182, 212, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 16px rgba(6, 182, 212, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(6, 182, 212, 0);
+  }
+}
+
+.animate-radar-ring {
+  animation: radarPulse 2s cubic-bezier(0.24, 0, 0.38, 1) infinite;
+}
+
+@keyframes floatGentle {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.animate-float {
+  animation: floatGentle 4s ease-in-out infinite;
+}
+
+/* Voice Recognition Waveform Ripple */
+@keyframes voiceRipple {
+  0% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.6);
+  }
+  70% {
+    box-shadow: 0 0 0 16px rgba(239, 68, 68, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+  }
+}
+
+.animate-voice-active {
+  animation: voiceRipple 1.4s infinite cubic-bezier(0.24, 0, 0.38, 1);
+}
+
+/* Gradient Text Utilities */
+.text-gradient-cyan {
+  background: linear-gradient(135deg, #38bdf8 0%, #06b6d4 50%, #60a5fa 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.text-gradient-qevora {
+  background: linear-gradient(135deg, #38bdf8 0%, #3b82f6 45%, #a855f7 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}
