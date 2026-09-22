@@ -78,9 +78,33 @@ export async function query(sql, params = []) {
     }
 }
 export async function initDatabase() {
-    const schemaPath = path.resolve(__dirname, 'schema.sql');
-    const schemaSql = fs.readFileSync(schemaPath, 'utf8');
-    console.log('[DB] Initializing PostgreSQL schema...');
+    const candidatePaths = [
+        path.resolve(__dirname, 'schema.sql'),
+        path.resolve(__dirname, '../db/schema.sql'),
+        path.resolve(__dirname, '../../src/db/schema.sql'),
+        path.resolve(process.cwd(), 'server/src/db/schema.sql'),
+        path.resolve(process.cwd(), 'src/db/schema.sql'),
+        path.resolve(process.cwd(), 'server/dist/db/schema.sql'),
+        path.resolve(process.cwd(), 'dist/db/schema.sql'),
+    ];
+    let schemaSql = '';
+    let foundPath = '';
+    for (const p of candidatePaths) {
+        if (fs.existsSync(p)) {
+            try {
+                schemaSql = fs.readFileSync(p, 'utf8');
+                foundPath = p;
+                break;
+            }
+            catch {
+                // try next candidate
+            }
+        }
+    }
+    if (!schemaSql) {
+        throw new Error(`[DB Error] Could not locate schema.sql in candidate paths: ${candidatePaths.join(', ')}`);
+    }
+    console.log(`[DB] Initializing PostgreSQL schema from ${foundPath}...`);
     const db = await getDbClient();
     if (db.type === 'pg') {
         await db.pool.query(schemaSql);

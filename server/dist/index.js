@@ -23,7 +23,7 @@ import qevoraRoutes from './routes/qevora.routes.js';
 dotenv.config();
 const app = express();
 const httpServer = http.createServer(app);
-// Enable CORS for frontend Vite dev server and production
+// Enable CORS for frontend Vite dev server and production deployments (e.g. Vercel)
 app.use(cors({
     origin: '*',
     credentials: true,
@@ -54,6 +54,15 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/vision', visionRoutes);
 app.use('/api/visits', visitRoutes);
 app.use('/api/qevora', qevoraRoutes);
+// Root health check endpoint (used by Render and uptime monitors)
+app.get('/', (req, res) => {
+    res.json({
+        status: 'ok',
+        service: 'QEVORA Real-Time Fair Queue System API',
+        version: '1.0.0',
+        time: new Date().toISOString(),
+    });
+});
 // Health check endpoint
 app.get('/api/health', (req, res) => {
     res.json({
@@ -69,15 +78,15 @@ app.use((err, req, res, next) => {
         error: err.message || 'An unexpected internal server error occurred.',
     });
 });
-const PORT = process.env.PORT || 5000;
+const PORT = Number(process.env.PORT) || 5000;
 async function start() {
     try {
         await initDatabase();
         await seedDatabase();
-        httpServer.listen(PORT, () => {
+        httpServer.listen(PORT, '0.0.0.0', () => {
             console.log(`=======================================================`);
             console.log(`🚀 REAL-TIME FAIR QUEUE SYSTEM SERVER`);
-            console.log(`📡 REST API & Socket.IO running on http://localhost:${PORT}`);
+            console.log(`📡 REST API & Socket.IO running on port ${PORT}`);
             console.log(`=======================================================`);
         });
     }

@@ -1,0 +1,19 @@
+# Dependencies
+node_modules/
+client/node_modules/
+server/node_modules/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Local environment overrides
+.env.local
+.env.*.local
+
+# PGlite runtime lock file
+server/data/postgres_db/postmaster.pid
+
+# OS Files
+.DS_Store
+Thumbs.db

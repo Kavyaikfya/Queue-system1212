@@ -1,6 +1,9 @@
-// API Client for Real-Time Fair Queue System
+﻿// API Client for Real-Time Fair Queue System
 
-const API_BASE = '/api';
+const rawApiUrl = (import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || '').trim();
+const API_BASE = rawApiUrl
+  ? (rawApiUrl.endsWith('/api') ? rawApiUrl.replace(/\/$/, '') : `${rawApiUrl.replace(/\/$/, '')}/api`)
+  : '/api';
 
 export class ApiError extends Error {
   status: number;
@@ -830,7 +833,7 @@ export const qevoraApi = {
         type: 'QUEUE',
         title: t.service_name || 'Service Queue',
         orgName: t.organization_name || 'Facility',
-        status: t.status === 'CALLED' ? 'Called to Counter' : `Waiting — Position #${t.position || 1}`,
+        status: t.status === 'CALLED' ? 'Called to Counter' : `Waiting â€” Position #${t.position || 1}`,
         ticketNumber: `#${t.prefix || 'T'}-${t.ticket_number}`,
         position: t.position || 1,
         wait: t.wait_time_minutes || 10,

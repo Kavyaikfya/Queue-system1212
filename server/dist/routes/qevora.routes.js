@@ -308,9 +308,20 @@ router.post('/passport/consent', optionalAuth, async (req, res) => {
     try {
         const userId = req.user?.id || 'demo_user';
         const { serviceId, grantedFields, status } = req.body;
+        let validServiceId = serviceId;
+        try {
+            const srvCheck = await query('SELECT id FROM services WHERE id = $1', [serviceId]);
+            if (srvCheck.rows.length === 0) {
+                const fallbackSrv = await query('SELECT id FROM services LIMIT 1');
+                validServiceId = fallbackSrv.rows[0]?.id || 'default_service';
+            }
+        }
+        catch {
+            // fallback
+        }
         const consentId = `con_${uuidv4().slice(0, 8)}`;
         await query(`INSERT INTO service_consents (id, user_id, service_id, granted_fields, status, consent_given_at)
-       VALUES ($1, $2, $3, $4, $5, NOW())`, [consentId, userId, serviceId, JSON.stringify(grantedFields || []), status || 'GRANTED']);
+       VALUES ($1, $2, $3, $4, $5, NOW())`, [consentId, userId, validServiceId, JSON.stringify(grantedFields || []), status || 'GRANTED']);
         return res.json({
             message: status === 'GRANTED' ? 'Consent granted. Only selected fields will be shared.' : 'Information was not shared.',
             consentId,

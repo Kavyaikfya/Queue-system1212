@@ -20,7 +20,9 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   useEffect(() => {
     // Connect to Socket.IO server
-    const socket = io('/', {
+    const rawSocketUrl = (import.meta.env.VITE_SOCKET_URL || import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || '').trim();
+    const serverUrl = rawSocketUrl ? rawSocketUrl.replace(/\/api\/?$/, '').replace(/\/$/, '') : '/';
+    const socket = io(serverUrl, {
       transports: ['websocket', 'polling'],
       reconnectionAttempts: 10,
       reconnectionDelay: 1000,
