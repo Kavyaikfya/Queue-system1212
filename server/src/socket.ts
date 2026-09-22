@@ -4,10 +4,40 @@ import type { Server as HttpServer } from 'http';
 let io: SocketIOServer | null = null;
 
 export function initSocketServer(httpServer: HttpServer): SocketIOServer {
+  const corsOriginEnv = process.env.CORS_ORIGIN;
+  const allowedOrigins = corsOriginEnv
+    ? corsOriginEnv.split(',').map((o) => o.trim()).filter(Boolean)
+    : [];
+
+  const isOriginAllowed = (origin: string | undefined): boolean => {
+    if (!origin) return true;
+    if (!corsOriginEnv || corsOriginEnv === '*' || allowedOrigins.includes('*')) {
+      return true;
+    }
+    if (allowedOrigins.includes(origin)) {
+      return true;
+    }
+    if (allowedOrigins.some((o) => o.includes('vercel.app')) && origin.endsWith('.vercel.app')) {
+      return true;
+    }
+    if (origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:')) {
+      return true;
+    }
+    return false;
+  };
+
   io = new SocketIOServer(httpServer, {
     cors: {
-      origin: '*',
+      origin: (origin, callback) => {
+        if (isOriginAllowed(origin)) {
+          callback(null, origin || true);
+        } else {
+          console.warn(`[Socket.IO CORS Blocked] Origin: ${origin}`);
+          callback(new Error(`Socket.IO CORS blocked origin: ${origin}`), false);
+        }
+      },
       methods: ['GET', 'POST', 'PUT', 'DELETE'],
+      credentials: true,
     },
   });
 

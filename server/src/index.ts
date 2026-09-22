@@ -28,11 +28,44 @@ dotenv.config();
 const app = express();
 const httpServer = http.createServer(app);
 
+// Configure dynamic CORS origin validation from environment variable (TASK 5)
+const corsOriginEnv = process.env.CORS_ORIGIN;
+const allowedOrigins = corsOriginEnv
+  ? corsOriginEnv.split(',').map((o) => o.trim()).filter(Boolean)
+  : [];
+
+export function isOriginAllowed(origin: string | undefined): boolean {
+  if (!origin) return true;
+  if (!corsOriginEnv || corsOriginEnv === '*' || allowedOrigins.includes('*')) {
+    return true;
+  }
+  if (allowedOrigins.includes(origin)) {
+    return true;
+  }
+  if (allowedOrigins.some((o) => o.includes('vercel.app')) && origin.endsWith('.vercel.app')) {
+    return true;
+  }
+  if (origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:')) {
+    return true;
+  }
+  return false;
+}
+
 // Enable CORS for frontend Vite dev server and production deployments (e.g. Vercel)
 app.use(
   cors({
-    origin: '*',
+    origin: (origin, callback) => {
+      if (isOriginAllowed(origin)) {
+        // Echo origin or return true so Access-Control-Allow-Origin is valid with credentials: true
+        callback(null, origin || true);
+      } else {
+        console.warn(`[CORS Blocked] Origin not allowed: ${origin}`);
+        callback(new Error(`CORS policy does not allow access from origin: ${origin}`));
+      }
+    },
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-user-id', 'x-user-email', 'x-user-name'],
   })
 );
 
